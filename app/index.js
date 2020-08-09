@@ -114,22 +114,25 @@ const awsActions = [
     DELETE_CFN_STACK
 ]
 
+/* 
+ * For now only interested in the following states
+ */
 const listStackParams = {
     StackStatusFilter: [
         'CREATE_IN_PROGRESS',
         'CREATE_FAILED',
         'CREATE_COMPLETE',
         'ROLLBACK_IN_PROGRESS',
-        'ROLLBACK_FAILED',
-        'ROLLBACK_COMPLETE',
+        //'ROLLBACK_FAILED',
+        //'ROLLBACK_COMPLETE',
         'DELETE_IN_PROGRESS',
-        'DELETE_FAILED',
-        'UPDATE_COMPLETE',
-        'DELETE_COMPLETE',
-        'UPDATE_IN_PROGRESS',
-        'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
-        'UPDATE_COMPLETE',
-        'UPDATE_ROLLBACK_COMPLETE'
+        // 'DELETE_FAILED',
+        //'UPDATE_COMPLETE',
+        //'DELETE_COMPLETE',
+        //'UPDATE_IN_PROGRESS',
+        //'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
+        //'UPDATE_COMPLETE',
+        //'UPDATE_ROLLBACK_COMPLETE'
     ]
 };
 
@@ -266,7 +269,10 @@ function createStack() {
             };
             cloudformation.createStack(params, function (err, data) {
                 if (err) handlerError(err)
-                else getStackStatus(answers)
+                else {
+                    console.log(chalk.green(`${rocket} Preparing for deployment...`))
+                    getStackStatus(answers)
+                }
             });
         })
 }
@@ -281,6 +287,10 @@ function stackStatus() {
             data.StackSummaries.forEach(stack => {
                 availableStacks.push(stack.StackName);
             })
+            if(availableStacks.length === 0) {
+                console.log(chalk.green(`${seeNoEvil} No active stacks for region ${awsDetails.region}`))
+                process.exit()
+            }
             inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
             inquirer
                 .prompt([
@@ -360,6 +370,10 @@ function deleteStack() {
             data.StackSummaries.forEach(stack => {
                 availableStacks.push(stack.StackName);
             })
+            if(availableStacks.length === 0) {
+                console.log(chalk.green(`${seeNoEvil} No active stacks for region ${awsDetails.region}`))
+                process.exit()
+            }
             inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
             inquirer
                 .prompt([

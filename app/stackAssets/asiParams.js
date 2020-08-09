@@ -34,9 +34,8 @@ const jiraAsiParams = `[
     {
         "ParameterKey": "AccessCIDR",
         "ParameterValue": "0.0.0.0/0"
-    },
+    }
 ]`
-
 
 const confluenceAsiParams = `[
   {
