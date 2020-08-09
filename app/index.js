@@ -392,24 +392,23 @@ function deleteStack() {
                     }
                 ])
                 .then((answers) => {
-                    // switch (answers.confirmation) {
-                    //     case 'yes':
-                    //         console.log(`DELETING ${answers.stackName}`)
-                    //         const params = {
-                    //             StackName: `${answers.stackName}`
-                    //         };
-                    //         cloudformation.deleteStack(params, function (err, data) {
-                    //             if (err) handlerError(err)
-                    //             else getStackStatus(answers)
-                    //         });
-                    //         break;
-                    //     case 'no':
-                    //         console.log(`NOT DELETING ${answers.stackName}`)
-                    //         process.exit()
-                    //         break;
-                    //     default:
-                    //         process.exit()
-                    // }
+                    switch (answers.confirmation) {
+                        case 'yes':
+                            const params = {
+                                StackName: `${answers.stackName}`
+                            };
+                            cloudformation.deleteStack(params, function (err, data) {
+                                if (err) handlerError(err)
+                                else {
+                                    console.log(chalk.green(`Preparing to delete stack [${answers.stackName}] now...`))
+                                    getStackStatus(answers)
+                                }
+                            });
+                            break;
+                        default:
+                            console.log(`NOT DELETING ${answers.stackName}`)
+                            process.exit()
+                    }
                 })
         }
     });
