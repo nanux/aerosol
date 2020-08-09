@@ -15,6 +15,7 @@ const ora = require('ora');
 const spinner = ora();
 
 const rocket = emoji.get('rocket');
+const cloud = emoji.get('sun_behind_cloud');
 const tada = emoji.get('tada');
 const details = emoji.get('zap');
 const seeNoEvil = emoji.get('see_no_evil');
@@ -113,6 +114,25 @@ const awsActions = [
     DELETE_CFN_STACK
 ]
 
+const listStackParams = {
+    StackStatusFilter: [
+        'CREATE_IN_PROGRESS',
+        'CREATE_FAILED',
+        'CREATE_COMPLETE',
+        'ROLLBACK_IN_PROGRESS',
+        'ROLLBACK_FAILED',
+        'ROLLBACK_COMPLETE',
+        'DELETE_IN_PROGRESS',
+        'DELETE_FAILED',
+        'UPDATE_COMPLETE',
+        'DELETE_COMPLETE',
+        'UPDATE_IN_PROGRESS',
+        'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
+        'UPDATE_COMPLETE',
+        'UPDATE_ROLLBACK_COMPLETE'
+    ]
+};
+
 figlet.text('Aerosol', {
     font: 'block',
     horizontalLayout: 'default',
@@ -125,11 +145,13 @@ figlet.text('Aerosol', {
         console.dir(err);
         return;
     }
+    
     // console.log(emoji.emoji)
     console.log(chalk.yellow(`${data}`));
+    console.log(chalk.yellow(`\t\t\t\t\     Cloud in a can `))
     console.log(chalk.yellow(`\t\t\t\t\     a DC-Deployments production `))
     console.log(chalk.yellow(`\t\t\t\t\t\t\   version 1.0.0`))
-    console.log(chalk.yellow(`\t\t\t\t\t\t\       ${sparkles}${sparkles}${sparkles}`))
+    // console.log(chalk.yellow(`\t\t\t\t\t\t\       ${sparkles}${sparkles}${sparkles}`))
     console.log('\n')
     inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
     inquirer
@@ -249,23 +271,32 @@ function createStack() {
         })
 }
 
-
-function interploateParams(answers) {
-    
-}
-
 function stackStatus() {
-    inquirer
-        .prompt([
-            {
-                type: 'input',
-                name: 'stackName',
-                message: `${pancakes} provide the stack name:`,
-            }
-        ])
-        .then((answer) => {
-            getStackStatus(answer);
-        });
+    availableStacks = [];
+    const cloudformation = new AWS.CloudFormation();
+    cloudformation.listStacks(listStackParams, function (err, data) {
+        availableStacks = [];
+        if (err) handlerError(err);
+        else {
+            data.StackSummaries.forEach(stack => {
+                availableStacks.push(stack.StackName);
+            })
+            inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
+            inquirer
+                .prompt([
+                    {
+                        type: 'autocomplete',
+                        name: 'stackName',
+                        message: `${pancakes} Select a stack:`,
+                        pageSize: 20,
+                        source: searchStacks
+                    }
+                ])
+                .then((answer) => {
+                    getStackStatus(answer);
+                })
+        }
+    });
 }
 
 function ssmSession() {
@@ -322,34 +353,8 @@ function ssmSession() {
 
 function deleteStack() {
     const cloudformation = new AWS.CloudFormation();
-    const listStackParams = {
-        StackStatusFilter: [
-            'CREATE_IN_PROGRESS',
-            'CREATE_FAILED',
-            'CREATE_COMPLETE',
-            'ROLLBACK_IN_PROGRESS',
-            'ROLLBACK_FAILED',
-            'ROLLBACK_COMPLETE',
-            'DELETE_IN_PROGRESS',
-            'DELETE_FAILED',
-            'UPDATE_COMPLETE',
-            // 'DELETE_COMPLETE',
-            // 'UPDATE_IN_PROGRESS',
-            // 'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
-            // 'UPDATE_COMPLETE',
-            // 'UPDATE_ROLLBACK_IN_PROGRESS',
-            // 'UPDATE_ROLLBACK_FAILED',
-            // 'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS',
-            'UPDATE_ROLLBACK_COMPLETE',
-            // 'REVIEW_IN_PROGRESS',
-            // 'IMPORT_IN_PROGRESS',
-            // 'IMPORT_COMPLETE',
-            // 'IMPORT_ROLLBACK_IN_PROGRESS',
-            // 'IMPORT_ROLLBACK_FAILED',
-            // 'IMPORT_ROLLBACK_COMPLETE',
-        ]
-    };
     cloudformation.listStacks(listStackParams, function (err, data) {
+        availableStacks = [];
         if (err) handlerError(err);
         else {
             data.StackSummaries.forEach(stack => {
@@ -458,12 +463,12 @@ function getStackStatus(answer) {
         } else {
             switch (data.Stacks[0].StackStatus) {
                 case 'CREATE_COMPLETE':
-                    console.log(chalk.green(`\n${check}${tada} creation complete for stack: ${answer.stackName} `));
+                    console.log(chalk.green(`\n  ${check} creation complete for stack: ${answer.stackName} `));
                     process.exit()
                     break;
                 case 'DELETE_COMPLETE':
                     console.log(data.Stacks[0])
-                    console.log(chalk.green(`\n${check}${tada} deletion complete for stack: ${answer.stackName} `));
+                    console.log(chalk.green(`\n  ${check} deletion complete for stack: ${answer.stackName} `));
                     process.exit()
                     break;
                 case 'CREATE_FAILED':
