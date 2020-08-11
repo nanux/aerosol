@@ -434,7 +434,6 @@ function deleteStack() {
                     }
                 ])
                 .then((answers) => {
-                    console.log(answers.confirmStackDeletion)
                     if (answers.confirmStackDeletion) {
                         const params = {
                             StackName: `${answers.stackName}`
@@ -447,6 +446,7 @@ function deleteStack() {
                             }
                         });
                     } else {
+                        console.log(chalk.green(`Stack deletion for [${answers.stackName}] cancelled.`))
                         process.exit()
                     }
                 })
