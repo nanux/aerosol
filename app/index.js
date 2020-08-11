@@ -99,14 +99,14 @@ let productTemplateMap = new Map([
     ['Jira', 'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc.template.yaml'],
     ['Confluence', 'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-confluence/templates/quickstart-confluence-master.template.yaml'],
     ['BitBucket', 'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-bitbucket/templates/quickstart-bitbucket-dc.template.yaml'],
-    ['Crowd' , 'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-crowd/templates/quickstart-crowd-dc.template.yaml'],
+    ['Crowd', 'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-crowd/templates/quickstart-crowd-dc.template.yaml'],
 ])
 
 let productPrefixes = new Map([
     ['Jira', 'quickstart-atlassian-jira/'],
     ['Confluence', 'quickstart-atlassian-confluence/'],
     ['BitBucket', 'quickstart-atlassian-bitbucket/'],
-    ['Crowd' , 'quickstart-atlassian-crowd/'],
+    ['Crowd', 'quickstart-atlassian-crowd/'],
 ])
 
 const awsActions = [
@@ -150,7 +150,7 @@ figlet.text('Aerosol', {
         console.dir(err);
         return;
     }
-    
+
     // console.log(emoji.emoji)
     console.log(chalk.yellow(`${data}`));
     console.log(chalk.yellow(`\t\t\t\t\     Cloud in a can `))
@@ -236,10 +236,9 @@ function createStack() {
                 message: `${four}  Provide a DB password (used for user & admin):`,
             },
             {
-                type: 'list',
+                type: 'confirm',
                 name: 'multiAzDB',
                 message: `${five}  Multi AZ DB deployment?:`,
-                choices: ['true', 'false'],
             },
             {
                 type: 'checkbox',
@@ -252,16 +251,25 @@ function createStack() {
                 },
             },
             {
-                type: 'list',
-                name: 'terminationProtection',
-                message: `${seven}  Enable termination protecion?:`,
-                choices: ['true', 'false'],
+                type: 'confirm',
+                name: 'enableTerminationMitigation',
+                message: `${seven}  Prevent stack termination or shutdown?:`,
             },
             {
-                type: 'list',
+                type: 'confirm',
+                name: 'terminationProtection',
+                message: `${seven}  Enable termination protection?:`,
+                when: function (answers) {
+                    return answers.enableTerminationMitigation;
+                },
+            },
+            {
+                type: 'confirm',
                 name: 'applyAntiShutDownTags',
                 message: `${eight}  Enable shutdown protection?:`,
-                choices: ['true', 'false'],
+                when: function (answers) {
+                    return answers.enableTerminationMitigation;
+                },
             },
         ])
         .then((answers) => {
@@ -277,30 +285,31 @@ function createStack() {
                 Parameters: JSON.parse(mustache.render(answers.deploymentType === 'Deploy into a new ASI' 
                     ? asiParams.get(answers.productStack) 
                     : productParams.get(answers.productStack), answers)),
-                TemplateURL: answers.deploymentType === 'Deploy into a new ASI' 
+                TemplateURL: answers.deploymentType === 'Deploy into a new ASI'
                     ? asiTemplateMap.get(answers.productStack)
                     : productTemplateMap.get(answers.productStack),
             };
-            if(answers.applyAntiShutDownTags === 'true') {
+            if (answers.applyAntiShutDownTags) {
                 params.Tags = [
                     {
-                        "Key": "Name", 
-                        "Value": `${answers.productStack}-aerosol-deployment` 
+                        "Key": "Name",
+                        "Value": `${answers.productStack}-aerosol-deployment`
                     },
                     {
-                        "Key": "business_unit", 
-                        "Value": 'DC-Deployments' 
+                        "Key": "business_unit",
+                        "Value": 'DC-Deployments'
                     },
                     {
-                        "Key": "service_name", 
+                        "Key": "service_name",
                         "Value": `${answers.productStack}`
                     },
                     {
                         "Key": "resource_owner",
-                        "Value": 'DC-Deployments' 
+                        "Value": 'DC-Deployments'
                     }
                 ]
             }
+            console.log(params)
             cloudformation.createStack(params, function (err, data) {
                 if (err) handlerError(err)
                 else {
@@ -321,7 +330,7 @@ function stackStatus() {
             data.StackSummaries.forEach(stack => {
                 availableStacks.push(stack.StackName);
             })
-            if(availableStacks.length === 0) {
+            if (availableStacks.length === 0) {
                 console.log(chalk.green(`${seeNoEvil} No active stacks for region ${awsDetails.region}`))
                 process.exit()
             }
@@ -404,7 +413,7 @@ function deleteStack() {
             data.StackSummaries.forEach(stack => {
                 availableStacks.push(stack.StackName);
             })
-            if(availableStacks.length === 0) {
+            if (availableStacks.length === 0) {
                 console.log(chalk.green(`${seeNoEvil} No active stacks for region ${awsDetails.region}`))
                 process.exit()
             }
@@ -419,29 +428,26 @@ function deleteStack() {
                         source: searchStacks
                     },
                     {
-                        type: 'list',
-                        name: 'confirmation',
+                        type: 'confirm',
+                        name: 'confirmStackDeletion',
                         message: `${warning}  Are you sure you want to delete this stack?`,
-                        choices: ['yes', 'no']
                     }
                 ])
                 .then((answers) => {
-                    switch (answers.confirmation) {
-                        case 'yes':
-                            const params = {
-                                StackName: `${answers.stackName}`
-                            };
-                            cloudformation.deleteStack(params, function (err, data) {
-                                if (err) handlerError(err)
-                                else {
-                                    console.log(chalk.green(`Preparing to delete stack [${answers.stackName}] now...`))
-                                    getStackStatus(answers)
-                                }
-                            });
-                            break;
-                        default:
-                            console.log(`NOT DELETING ${answers.stackName}`)
-                            process.exit()
+                    console.log(answers.confirmStackDeletion)
+                    if (answers.confirmStackDeletion) {
+                        const params = {
+                            StackName: `${answers.stackName}`
+                        };
+                        cloudformation.deleteStack(params, function (err, data) {
+                            if (err) handlerError(err)
+                            else {
+                                console.log(chalk.green(`Preparing to delete stack [${answers.stackName}] now...`))
+                                getStackStatus(answers)
+                            }
+                        });
+                    } else {
+                        process.exit()
                     }
                 })
         }
@@ -548,8 +554,10 @@ function getStackStatus(answer) {
 
 function loadAvailabilityZones() {
     const ec2 = new AWS.EC2();
-    ec2.describeAvailabilityZones(function(err, data) {
-        if (err) console.log(err, err.stack); 
-        else data.AvailabilityZones.forEach(zone => {azs.push(zone.ZoneName)});
+    ec2.describeAvailabilityZones(function (err, data) {
+        if (err) console.log(err, err.stack);
+        else data.AvailabilityZones.forEach(zone => {
+            azs.push(zone.ZoneName)
+        });
     });
 }
