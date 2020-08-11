@@ -37,6 +37,8 @@ const three = emoji.get('three');
 const four = emoji.get('four');
 const five = emoji.get('five');
 const six = emoji.get('six');
+const seven = emoji.get('seven');
+const eight = emoji.get('eight');
 
 const azs = [];
 const targetInstances = [];
@@ -123,16 +125,16 @@ const listStackParams = {
         'CREATE_FAILED',
         'CREATE_COMPLETE',
         'ROLLBACK_IN_PROGRESS',
-        //'ROLLBACK_FAILED',
-        //'ROLLBACK_COMPLETE',
+        'ROLLBACK_FAILED',
+        'ROLLBACK_COMPLETE',
         'DELETE_IN_PROGRESS',
-        // 'DELETE_FAILED',
-        //'UPDATE_COMPLETE',
-        //'DELETE_COMPLETE',
-        //'UPDATE_IN_PROGRESS',
-        //'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
-        //'UPDATE_COMPLETE',
-        //'UPDATE_ROLLBACK_COMPLETE'
+        'DELETE_FAILED',
+        'UPDATE_COMPLETE',
+        'DELETE_COMPLETE',
+        'UPDATE_IN_PROGRESS',
+        'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
+        'UPDATE_COMPLETE',
+        'UPDATE_ROLLBACK_COMPLETE'
     ]
 };
 
@@ -236,7 +238,7 @@ function createStack() {
             {
                 type: 'list',
                 name: 'multiAzDB',
-                message: `${five}  Is this a multi AZ DB deployment?:`,
+                message: `${five}  Multi AZ DB deployment?:`,
                 choices: ['true', 'false'],
             },
             {
@@ -248,7 +250,19 @@ function createStack() {
                 when: function (answers) {
                     return answers.deploymentType === 'Deploy into a new ASI';
                 },
-            }
+            },
+            {
+                type: 'list',
+                name: 'terminationProtection',
+                message: `${seven}  Enable termination protecion?:`,
+                choices: ['true', 'false'],
+            },
+            {
+                type: 'list',
+                name: 'applyAntiShutDownTags',
+                message: `${eight}  Enable shutdown protection?:`,
+                choices: ['true', 'false'],
+            },
         ])
         .then((answers) => {
             answers.productPrefix = productPrefixes.get(answers.productStack)
@@ -259,7 +273,7 @@ function createStack() {
                     'CAPABILITY_IAM'
                 ],
                 DisableRollback: true,
-                EnableTerminationProtection: false,
+                EnableTerminationProtection: JSON.parse(`${(answers.terminationProtection === 'true')}`),
                 Parameters: JSON.parse(mustache.render(answers.deploymentType === 'Deploy into a new ASI' 
                     ? asiParams.get(answers.productStack) 
                     : productParams.get(answers.productStack), answers)),
@@ -267,6 +281,26 @@ function createStack() {
                     ? asiTemplateMap.get(answers.productStack)
                     : productTemplateMap.get(answers.productStack),
             };
+            if(answers.applyAntiShutDownTags === 'true') {
+                params.Tags = [
+                    {
+                        "Key": "Name", 
+                        "Value": `${answers.productStack}-aerosol-deployment` 
+                    },
+                    {
+                        "Key": "business_unit", 
+                        "Value": 'DC-Deployments' 
+                    },
+                    {
+                        "Key": "service_name", 
+                        "Value": `${answers.productStack}`
+                    },
+                    {
+                        "Key": "resource_owner",
+                        "Value": 'DC-Deployments' 
+                    }
+                ]
+            }
             cloudformation.createStack(params, function (err, data) {
                 if (err) handlerError(err)
                 else {
