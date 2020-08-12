@@ -85,7 +85,8 @@ let asiParams = new Map([
 ])
 
 let productParams = new Map([
-    ['Jira', require('./stackAssets/productParams').jiraProductParams]
+    ['Jira', require('./stackAssets/productParams').jiraProductParams],
+    ['Confluence', require('./stackAssets/productParams').confluenceProductParams]
 ])
 
 let asiTemplateMap = new Map([
@@ -281,7 +282,7 @@ function createStack() {
                     'CAPABILITY_IAM'
                 ],
                 DisableRollback: true,
-                EnableTerminationProtection: JSON.parse(`${(answers.terminationProtection === 'true')}`),
+                EnableTerminationProtection: JSON.parse(`${(answers.terminationProtection)}`),
                 Parameters: JSON.parse(mustache.render(answers.deploymentType === 'Deploy into a new ASI' 
                     ? asiParams.get(answers.productStack) 
                     : productParams.get(answers.productStack), answers)),
@@ -309,7 +310,6 @@ function createStack() {
                     }
                 ]
             }
-            console.log(params)
             cloudformation.createStack(params, function (err, data) {
                 if (err) handlerError(err)
                 else {
