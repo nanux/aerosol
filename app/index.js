@@ -180,7 +180,6 @@ figlet.text('Aerosol', {
             awsDetails.region = answers.region;
             awsDetails.action = answers.action;
             AWS.config.update({region: awsDetails.region});
-            loadAvailabilityZones()
             AWS.config.getCredentials(function (err) {
                 if (err) console.log(chalk.red(`Could not obtain AWS credentials`), err);
                 else {
@@ -211,6 +210,7 @@ figlet.text('Aerosol', {
  * always defaulted to `ATL-`
  */
 function createStack() {
+    loadAvailabilityZones()
     inquirer
         .prompt([
             {
@@ -231,15 +231,26 @@ function createStack() {
                 message: `${three}  Provide a stack name:`,
             },
             {
+                type: 'confirm',
+                name: 'quickDeploy',
+                message: `${one}  Quick deploy? (we default to the optimum params):`,
+            },
+            {
                 type: 'password',
                 name: 'dbPassword',
                 mask: true,
                 message: `${four}  Provide a DB password (used for user & admin):`,
+                when: function (answers) {
+                    return !answers.quickDeploy;
+                },
             },
             {
                 type: 'confirm',
                 name: 'multiAzDB',
                 message: `${five}  Multi AZ DB deployment?:`,
+                when: function (answers) {
+                    return !answers.quickDeploy;
+                },
             },
             {
                 type: 'checkbox',
@@ -248,20 +259,23 @@ function createStack() {
                 message: `${six}  Select at least two AZ's:`,
                 choices: azs,
                 when: function (answers) {
-                    return answers.deploymentType === 'Deploy into a new ASI';
+                    return answers.deploymentType === 'Deploy into a new ASI' && !answers.quickDeploy;
                 },
             },
             {
                 type: 'confirm',
                 name: 'enableTerminationMitigation',
                 message: `${seven}  Prevent stack termination or shutdown?:`,
+                when: function (answers) {
+                    return !answers.quickDeploy;
+                },
             },
             {
                 type: 'confirm',
                 name: 'terminationProtection',
                 message: `${seven}  Enable termination protection?:`,
                 when: function (answers) {
-                    return answers.enableTerminationMitigation;
+                    return answers.enableTerminationMitigation || !answers.quickDeploy;
                 },
             },
             {
@@ -269,11 +283,19 @@ function createStack() {
                 name: 'applyAntiShutDownTags',
                 message: `${eight}  Enable shutdown protection?:`,
                 when: function (answers) {
-                    return answers.enableTerminationMitigation;
+                    return answers.enableTerminationMitigation || !answers.quickDeploy;
                 },
             },
         ])
         .then((answers) => {
+            if(answers.quickDeploy) {
+                answers.dbPassword = 'f925dO1ry_'
+                answers.multiAzDB = false
+                answers.terminationProtection = false
+                answers.applyAntiShutDownTags = false
+                answers.availabilityZones = [azs[0], azs[1]]
+                answers.productPrefix = productPrefixes.get(answers.productStack)
+            }
             answers.productPrefix = productPrefixes.get(answers.productStack)
             const cloudformation = new AWS.CloudFormation();
             const params = {
