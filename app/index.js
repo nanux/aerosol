@@ -298,7 +298,7 @@ function createStack() {
              */
             answers.terminationProtection = false;
             answers.applyAntiShutDownTags = false;
-            if(answers.stackProtection.length > 0){
+            if(answers.stackProtection && answers.stackProtection.length > 0){
                 answers.stackProtection.forEach(protectionType => {
                     if(protectionType === 'Termination protection') answers.terminationProtection = true
                     if(protectionType === 'Shutdown protection') answers.applyAntiShutDownTags = true
