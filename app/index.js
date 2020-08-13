@@ -13,6 +13,7 @@ const _ = require('lodash');
 const fuzzy = require('fuzzy');
 const ora = require('ora');
 const spinner = ora();
+const TinyURL = require('tinyurl');
 
 const rocket = emoji.get('rocket');
 const cloud = emoji.get('sun_behind_cloud');
@@ -336,6 +337,7 @@ function createStack() {
                 if (err) handlerError(err)
                 else {
                     console.log(chalk.green(`${rocket} Preparing for deployment...`))
+                    console.log(chalk.green(`You can view your stack here:`), chalk.cyan(`https://${awsDetails.region}.console.aws.amazon.com/cloudformation/home?region=${awsDetails.region}#/stacks/stackinfo?filteringText=&filteringStatus=active&viewNested=false&hideStacks=false&stackId=${data.StackId}`))
                     getStackStatus(answers)
                 }
             });
