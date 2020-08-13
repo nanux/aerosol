@@ -337,7 +337,6 @@ function createStack() {
                     }
                 ]
             }
-            console.log(params)
             cloudformation.createStack(params, function (err, data) {
                 if (err) handlerError(err)
                 else {
