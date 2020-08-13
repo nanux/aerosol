@@ -286,8 +286,6 @@ function createStack() {
             if(answers.quickDeploy) {
                 answers.dbPassword = 'f925dO1ry_'
                 answers.multiAzDB = false
-                answers.terminationProtection = false
-                answers.applyAntiShutDownTags = false
                 answers.availabilityZones = [azs[0], azs[1]]
                 answers.productPrefix = productPrefixes.get(answers.productStack)
             }
@@ -339,6 +337,7 @@ function createStack() {
                     }
                 ]
             }
+            console.log(params)
             cloudformation.createStack(params, function (err, data) {
                 if (err) handlerError(err)
                 else {
