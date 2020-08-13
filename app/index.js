@@ -13,7 +13,6 @@ const _ = require('lodash');
 const fuzzy = require('fuzzy');
 const ora = require('ora');
 const spinner = ora();
-const TinyURL = require('tinyurl');
 
 const rocket = emoji.get('rocket');
 const cloud = emoji.get('sun_behind_cloud');
@@ -41,6 +40,7 @@ const six = emoji.get('six');
 const seven = emoji.get('seven');
 const eight = emoji.get('eight');
 
+const stackProtection = ['Termination protection', 'Shutdown protection']
 const azs = [];
 const targetInstances = [];
 let availableStacks = [];
@@ -265,26 +265,20 @@ function createStack() {
             },
             {
                 type: 'confirm',
-                name: 'enableTerminationMitigation',
+                name: 'enableStackProtection',
                 message: `${seven}  Prevent stack termination or shutdown?:`,
                 when: function (answers) {
                     return !answers.quickDeploy;
                 },
             },
             {
-                type: 'confirm',
-                name: 'terminationProtection',
-                message: `${seven}  Enable termination protection?:`,
+                type: 'checkbox',
+                checked: true,
+                name: 'stackProtection',
+                message: `${seven}  Select the protection levels:`,
+                choices: stackProtection,
                 when: function (answers) {
-                    return answers.enableTerminationMitigation || !answers.quickDeploy;
-                },
-            },
-            {
-                type: 'confirm',
-                name: 'applyAntiShutDownTags',
-                message: `${eight}  Enable shutdown protection?:`,
-                when: function (answers) {
-                    return answers.enableTerminationMitigation || !answers.quickDeploy;
+                    return answers.enableStackProtection;
                 },
             },
         ])
@@ -298,6 +292,18 @@ function createStack() {
                 answers.productPrefix = productPrefixes.get(answers.productStack)
             }
             answers.productPrefix = productPrefixes.get(answers.productStack)
+            
+            /*
+             * Default stack protection to false
+             */
+            answers.terminationProtection = false;
+            answers.applyAntiShutDownTags = false;
+            if(answers.stackProtection.length > 0){
+                answers.stackProtection.forEach(protectionType => {
+                    if(protectionType === 'Termination protection') answers.terminationProtection = true
+                    if(protectionType === 'Shutdown protection') answers.applyAntiShutDownTags = true
+                })
+            }
             const cloudformation = new AWS.CloudFormation();
             const params = {
                 StackName: `${answers.stackName}`,
@@ -305,7 +311,7 @@ function createStack() {
                     'CAPABILITY_IAM'
                 ],
                 DisableRollback: true,
-                EnableTerminationProtection: JSON.parse(`${(answers.terminationProtection)}`),
+                EnableTerminationProtection: answers.terminationProtection,
                 Parameters: JSON.parse(mustache.render(answers.deploymentType === 'Deploy into a new ASI' 
                     ? asiParams.get(answers.productStack) 
                     : productParams.get(answers.productStack), answers)),
@@ -337,7 +343,8 @@ function createStack() {
                 if (err) handlerError(err)
                 else {
                     console.log(chalk.green(`${rocket} Preparing for deployment...`))
-                    console.log(chalk.green(`You can view your stack here:`), chalk.cyan(`https://${awsDetails.region}.console.aws.amazon.com/cloudformation/home?region=${awsDetails.region}#/stacks/stackinfo?filteringText=&filteringStatus=active&viewNested=false&hideStacks=false&stackId=${data.StackId}`))
+                    let stackUrl = `https://${awsDetails.region}.console.aws.amazon.com/cloudformation/home?region=${awsDetails.region}#/stacks/stackinfo?filteringText=&filteringStatus=active&viewNested=false&hideStacks=false&stackId=${data.StackId}`
+                    console.log(chalk.green(`${pancakes} View stack from AWS console:`), stackUrl);
                     getStackStatus(answers)
                 }
             });
