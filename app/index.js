@@ -14,38 +14,9 @@ const fuzzy = require('fuzzy');
 const ora = require('ora');
 const spinner = ora();
 
-const rocket = emoji.get('rocket');
-const cloud = emoji.get('sun_behind_cloud');
-const tada = emoji.get('tada');
-const details = emoji.get('zap');
-const seeNoEvil = emoji.get('see_no_evil');
-const hearNoEvil = emoji.get('hear_no_evil');
-const key = emoji.get('key');
-const thinking = emoji.get('thinking_face');
-const sparkles = emoji.get('sparkles');
-const skull = emoji.get('skull_and_crossbones');
-const warning = emoji.get('warning');
-const earth = emoji.get('earth_africa');
-const computer = emoji.get('computer');
-const pancakes = emoji.get('pancakes');
-const construction = emoji.get('construction');
-const check = emoji.get('white_check_mark');
-const action = emoji.get('zap');
-const one = emoji.get('one');
-const two = emoji.get('two');
-const three = emoji.get('three');
-const four = emoji.get('four');
-const five = emoji.get('five');
-const six = emoji.get('six');
-const seven = emoji.get('seven');
-const eight = emoji.get('eight');
-
 const stackProtection = ['Termination protection', 'Shutdown protection']
 const azs = [];
-const targetInstances = [];
 let availableStacks = [];
-let capturedInstance = {};
-let availableInstances = [];
 const awsDetails = {}
 
 const regions = [
@@ -71,52 +42,41 @@ const CREATE_STACK = 'create stack';
 const DELETE_CFN_STACK = 'delete stack';
 const STACK_STATUS = 'stack status';
 
-const stackTypes = [
-    'Jira',
-    'BitBucket',
-    'Confluence',
-    'Crowd'
-]
+const awsActions = [SSM_START_SESSION, CREATE_STACK, STACK_STATUS, DELETE_CFN_STACK]
+const stackTypes = ['Jira', 'BitBucket', 'Confluence', 'Crowd']
 
-let asiParams = new Map([
-    ['Jira', require('./stackAssets/asiParams').jiraAsiParams],
-    ['Confluence', require('./stackAssets/asiParams').confluenceAsiParams], //Conf diff by one param
+const asiParams = new Map([
+    ['Jira', require('./assets/asiParams').jiraAsiParams],
+    ['Confluence', require('./assets/asiParams').confluenceAsiParams], //Conf diff by one param
     // ['BitBucket', jiraAsiParams], //BB diff
-    ['Crowd', require('./stackAssets/asiParams').jiraAsiParams], //Crowd same as Jira
+    ['Crowd', require('./assets/asiParams').jiraAsiParams], //Crowd same as Jira
 ])
 
-let productParams = new Map([
-    ['Jira', require('./stackAssets/productParams').jiraProductParams],
-    ['Confluence', require('./stackAssets/productParams').confluenceProductParams]
+const productParams = new Map([
+    ['Jira', require('./assets/productParams').jiraProductParams],
+    ['Confluence', require('./assets/productParams').confluenceProductParams]
 ])
 
-let asiTemplateMap = new Map([
+const asiTemplates = new Map([
     ['Jira', 'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc-with-vpc.template.yaml'],
     ['Confluence', 'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-confluence/templates/quickstart-confluence-master-with-vpc.template.yaml'],
     ['BitBucket', 'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-bitbucket/templates/quickstart-bitbucket-dc-with-vpc.template.yaml'],
     ['Crowd', 'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-crowd/templates/quickstart-crowd-dc-with-vpc.template.yaml'],
 ]);
 
-let productTemplateMap = new Map([
+const productTemplates = new Map([
     ['Jira', 'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc.template.yaml'],
     ['Confluence', 'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-confluence/templates/quickstart-confluence-master.template.yaml'],
     ['BitBucket', 'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-bitbucket/templates/quickstart-bitbucket-dc.template.yaml'],
     ['Crowd', 'https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-crowd/templates/quickstart-crowd-dc.template.yaml'],
 ])
 
-let productPrefixes = new Map([
+const productPrefixes = new Map([
     ['Jira', 'quickstart-atlassian-jira/'],
     ['Confluence', 'quickstart-atlassian-confluence/'],
     ['BitBucket', 'quickstart-atlassian-bitbucket/'],
     ['Crowd', 'quickstart-atlassian-crowd/'],
 ])
-
-const awsActions = [
-    SSM_START_SESSION,
-    CREATE_STACK,
-    STACK_STATUS,
-    DELETE_CFN_STACK
-]
 
 /* 
  * For now only interested in the following states
@@ -152,8 +112,6 @@ figlet.text('Aerosol', {
         console.dir(err);
         return;
     }
-
-    // console.log(emoji.emoji)
     console.log(chalk.yellow(`${data}`));
     console.log(chalk.yellow(`\t\t\t\t\     Cloud in a can `))
     console.log(chalk.yellow(`\t\t\t\t\     a DC-Deployments production `))
@@ -166,14 +124,14 @@ figlet.text('Aerosol', {
             {
                 type: 'autocomplete',
                 name: 'region',
-                message: `${earth} Select a region:`,
+                message: `${emoji.get('earth_africa')} Select a region:`,
                 pageSize: 6,
                 source: searchRegions
             },
             {
                 type: 'rawlist',
                 name: 'action',
-                message: `${action} Select an action:`,
+                message: `${emoji.get('zap')} Select an action:`,
                 choices: awsActions
             },
         ])
@@ -217,30 +175,30 @@ function createStack() {
             {
                 type: 'list',
                 name: 'productStack',
-                message: `${one}  Select product:`,
+                message: `${emoji.get('one')}  Select product:`,
                 choices: stackTypes
             },
             {
                 type: 'list',
                 name: 'deploymentType',
-                message: `${two}  Select a deployment type:`,
+                message: `${emoji.get('two')}  Select a deployment type:`,
                 choices: ['Deploy into a new ASI', 'Deploy into an existing ASI']
             },
             {
                 type: 'input',
                 name: 'stackName',
-                message: `${three}  Provide a stack name:`,
+                message: `${emoji.get('three')}  Provide a stack name:`,
             },
             {
                 type: 'confirm',
                 name: 'quickDeploy',
-                message: `${one}  Quick deploy? (we default to the optimum params):`,
+                message: `${emoji.get('four')}  Quick deploy? (we default to the optimum params):`,
             },
             {
                 type: 'password',
                 name: 'dbPassword',
                 mask: true,
-                message: `${four}  Provide a DB password (used for user & admin):`,
+                message: `${emoji.get('five')}  Provide a DB password (used for user & admin):`,
                 when: function (answers) {
                     return !answers.quickDeploy;
                 },
@@ -248,7 +206,7 @@ function createStack() {
             {
                 type: 'confirm',
                 name: 'multiAzDB',
-                message: `${five}  Multi AZ DB deployment?:`,
+                message: `${emoji.get('six')}  Multi AZ DB deployment?:`,
                 when: function (answers) {
                     return !answers.quickDeploy;
                 },
@@ -257,7 +215,7 @@ function createStack() {
                 type: 'checkbox',
                 checked: true,
                 name: 'availabilityZones',
-                message: `${six}  Select at least two AZ's:`,
+                message: `${emoji.get('seven')}  Select at least two AZ's:`,
                 choices: azs,
                 when: function (answers) {
                     return answers.deploymentType === 'Deploy into a new ASI' && !answers.quickDeploy;
@@ -266,7 +224,7 @@ function createStack() {
             {
                 type: 'confirm',
                 name: 'enableStackProtection',
-                message: `${seven}  Prevent stack termination or shutdown?:`,
+                message: `${emoji.get('eight')}  Prevent stack termination or shutdown?:`,
                 when: function (answers) {
                     return !answers.quickDeploy;
                 },
@@ -275,7 +233,7 @@ function createStack() {
                 type: 'checkbox',
                 checked: true,
                 name: 'stackProtection',
-                message: `${seven}  Select the protection levels:`,
+                message: `${emoji.get('nine')}  Select the protection levels:`,
                 choices: stackProtection,
                 when: function (answers) {
                     return answers.enableStackProtection;
@@ -283,23 +241,27 @@ function createStack() {
             },
         ])
         .then((answers) => {
-            if(answers.quickDeploy) {
+            
+            /*
+             * Apply default values for Quick Deploy
+             */
+            if (answers.quickDeploy) {
                 answers.dbPassword = 'f925dO1ry_'
                 answers.multiAzDB = false
                 answers.availabilityZones = [azs[0], azs[1]]
                 answers.productPrefix = productPrefixes.get(answers.productStack)
             }
             answers.productPrefix = productPrefixes.get(answers.productStack)
-            
+
             /*
              * Default stack protection to false
              */
             answers.terminationProtection = false;
             answers.applyAntiShutDownTags = false;
-            if(answers.stackProtection && answers.stackProtection.length > 0){
+            if (answers.stackProtection && answers.stackProtection.length > 0) {
                 answers.stackProtection.forEach(protectionType => {
-                    if(protectionType === 'Termination protection') answers.terminationProtection = true
-                    if(protectionType === 'Shutdown protection') answers.applyAntiShutDownTags = true
+                    if (protectionType === 'Termination protection') answers.terminationProtection = true
+                    if (protectionType === 'Shutdown protection') answers.applyAntiShutDownTags = true
                 })
             }
             const cloudformation = new AWS.CloudFormation();
@@ -310,12 +272,12 @@ function createStack() {
                 ],
                 DisableRollback: true,
                 EnableTerminationProtection: answers.terminationProtection,
-                Parameters: JSON.parse(mustache.render(answers.deploymentType === 'Deploy into a new ASI' 
-                    ? asiParams.get(answers.productStack) 
+                Parameters: JSON.parse(mustache.render(answers.deploymentType === 'Deploy into a new ASI'
+                    ? asiParams.get(answers.productStack)
                     : productParams.get(answers.productStack), answers)),
                 TemplateURL: answers.deploymentType === 'Deploy into a new ASI'
-                    ? asiTemplateMap.get(answers.productStack)
-                    : productTemplateMap.get(answers.productStack),
+                    ? asiTemplates.get(answers.productStack)
+                    : productTemplates.get(answers.productStack),
             };
             if (answers.applyAntiShutDownTags) {
                 params.Tags = [
@@ -340,9 +302,9 @@ function createStack() {
             cloudformation.createStack(params, function (err, data) {
                 if (err) handlerError(err)
                 else {
-                    console.log(chalk.green(`${rocket} Preparing for deployment...`))
+                    console.log(chalk.green(`${emoji.get('rocket')} Preparing for deployment...`))
                     let stackUrl = `https://${awsDetails.region}.console.aws.amazon.com/cloudformation/home?region=${awsDetails.region}#/stacks/stackinfo?filteringText=&filteringStatus=active&viewNested=false&hideStacks=false&stackId=${data.StackId}`
-                    console.log(chalk.green(`${pancakes} View stack from AWS console:`), stackUrl);
+                    console.log(chalk.green(`${emoji.get('pancakes')} View stack from AWS console:`), stackUrl);
                     getStackStatus(answers)
                 }
             });
@@ -360,7 +322,7 @@ function stackStatus() {
                 availableStacks.push(stack.StackName);
             })
             if (availableStacks.length === 0) {
-                console.log(chalk.green(`${seeNoEvil} No active stacks for region ${awsDetails.region}`))
+                console.log(chalk.green(`${emoji.get('see_no_evil')} No active stacks for region ${awsDetails.region}`))
                 process.exit()
             }
             inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
@@ -369,7 +331,7 @@ function stackStatus() {
                     {
                         type: 'autocomplete',
                         name: 'stackName',
-                        message: `${pancakes} Select a stack:`,
+                        message: `${emoji.get('pancakes')} Select a stack:`,
                         pageSize: 20,
                         source: searchStacks
                     }
@@ -384,7 +346,8 @@ function stackStatus() {
 function ssmSession() {
     const ec2 = new AWS.EC2();
     const params = {
-        //Filter instances belonging to an AWS QS Stack
+        //Filter instances belonging to an AWS QS Stack i.e only those 
+        //belonging to ClusterNodeGroup
         Filters: [
             {
                 Name: "tag:aws:cloudformation:logical-id",
@@ -395,6 +358,8 @@ function ssmSession() {
         ]
     };
     ec2.describeInstances(params, function (err, data) {
+        let availableInstances = [];
+        let targetInstances = [];
         if (err) handlerError(err)
         else {
             data.Reservations.forEach(reservation => {
@@ -402,10 +367,10 @@ function ssmSession() {
             });
             targetInstances.forEach(instance => {
                 if (instance.length > 0) {
+                    let capturedInstance = {};
                     capturedInstance.instanceId = instance[0].InstanceId
                     capturedInstance.name = instance[0].Tags.filter(tag => tag.Key === 'Name')[0].Value;
                     availableInstances.push(capturedInstance)
-                    capturedInstance = {}
                 }
             })
         }
@@ -415,20 +380,20 @@ function ssmSession() {
                     {
                         type: 'list',
                         name: 'ec2Instance',
-                        message: `${computer} Select an EC2 instance:`,
+                        message: `${emoji.get('computer')} Select an EC2 instance:`,
                         choices: availableInstances
                     },
                 ])
                 .then((answers) => {
                     let instanceId = availableInstances.filter(instance => instance.name === answers.ec2Instance)[0].instanceId
                     const sessionCommand = `aws ssm start-session --target ${instanceId} --region ${awsDetails.region}`
-                    console.log(chalk.green(`${details} Using session details: ${sessionCommand}`))
-                    console.log(chalk.green(`${rocket} Launching SSM session now... `));
+                    console.log(chalk.green(`${emoji.get('zap')} Using session details: ${sessionCommand}`))
+                    console.log(chalk.green(`${emoji.get('rocket')} Launching SSM session now... `));
                     let spawn = require('child_process').spawn;
                     spawn('aws', ['ssm', 'start-session', "--target", instanceId, "--region", awsDetails.region], {stdio: 'inherit'});
                 })
         } else {
-            console.log(chalk.yellow(`${seeNoEvil} No running EC2 instances found for ${awsDetails.region}`))
+            console.log(chalk.yellow(`${emoji.get('see_no_evil')} No running EC2 instances found for ${awsDetails.region}`))
         }
     })
 }
@@ -443,7 +408,7 @@ function deleteStack() {
                 availableStacks.push(stack.StackName);
             })
             if (availableStacks.length === 0) {
-                console.log(chalk.green(`${seeNoEvil} No active stacks for region ${awsDetails.region}`))
+                console.log(chalk.green(`${emoji.get('see_no_evil')} No active stacks for region ${awsDetails.region}`))
                 process.exit()
             }
             inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
@@ -452,14 +417,14 @@ function deleteStack() {
                     {
                         type: 'autocomplete',
                         name: 'stackName',
-                        message: `${pancakes} Select a stack to delete:`,
+                        message: `${emoji.get('pancakes')} Select a stack to delete:`,
                         pageSize: 20,
                         source: searchStacks
                     },
                     {
                         type: 'confirm',
                         name: 'confirmStackDeletion',
-                        message: `${warning}  Are you sure you want to delete this stack?`,
+                        message: `${emoji.get('warning')}  Are you sure you want to delete this stack?`,
                     }
                 ])
                 .then((answers) => {
@@ -486,24 +451,71 @@ function deleteStack() {
 function handlerError(err) {
     switch (err.code) {
         case 'RequestExpired':
-            console.log(chalk.red(`${key} Your AWS credentials have expired. Authenticate to AWS using your favoured mechanism and update ~/.aws/credentials accordingly`));
+            console.log(chalk.red(`${emoji.get('key')} Your AWS credentials have expired. Authenticate to AWS using your favoured mechanism and update ~/.aws/credentials accordingly`));
             process.exit()
             break;
         case 'ExpiredToken':
-            console.log(chalk.red(`${key} Your security token has expired. Authenticate to AWS using your favoured mechanism and update ~/.aws/credentials accordingly`));
+            console.log(chalk.red(`${emoji.get('key')} Your security token has expired. Authenticate to AWS using your favoured mechanism and update ~/.aws/credentials accordingly`));
             process.exit()
             break;
         case 'ValidationError':
-            console.log(chalk.red(`${warning}  ${err.message}`));
+            console.log(chalk.red(`${emoji.get('warning')}  ${err.message}`));
             process.exit()
             break;
         case 'AlreadyExistsException':
-            console.log(chalk.red(`${hearNoEvil} ${err.message}!`));
+            console.log(chalk.red(`${emoji.get('hear_no_evil')} ${err.message}!`));
             process.exit()
             break;
         default:
-            console.log(`${thinking} Not sure how to deal with this error: ${err}`)
+            console.log(`${emoji.get('thinking_face')} Not sure how to deal with this error: ${err}`)
     }
+}
+
+function getStackStatus(answer) {
+    const cloudformation = new AWS.CloudFormation();
+    const params = {
+        StackName: `${answer.stackName}`
+    };
+    setInterval(() => cloudformation.describeStacks(params, function (err, data) {
+        if (err) {
+            handlerError(err);
+        } else {
+            switch (data.Stacks[0].StackStatus) {
+                case 'CREATE_COMPLETE':
+                    console.log(chalk.green(`\n  ${emoji.get('white_check_mark')} creation complete for stack: ${answer.stackName} `));
+                    process.exit()
+                    break;
+                case 'DELETE_COMPLETE':
+                    console.log(data.Stacks[0])
+                    console.log(chalk.green(`\n  ${emoji.get('white_check_mark')} deletion complete for stack: ${answer.stackName} `));
+                    process.exit()
+                    break;
+                case 'CREATE_FAILED':
+                    console.log(chalk.red(`\n${emoji.get('see_no_evil')} stack creation failed for: ${answer.stackName}. Check AWS Console for more details`));
+                    process.exit()
+                    break;
+                case 'CREATE_IN_PROGRESS':
+                    setTimeout(() => {
+                        spinner.start();
+                        spinner.color = 'yellow';
+                        spinner.text = chalk.green(`${emoji.get('construction')} Stack [${answer.stackName}] creation in progress...`);
+                    }, 1000);
+                    break;
+                case 'DELETE_IN_PROGRESS':
+                    setTimeout(() => {
+                        spinner.start();
+                        spinner.color = 'yellow';
+                        spinner.text = chalk.green(`${emoji.get('skull_and_crossbones')}  Stack [${answer.stackName}] deletion in progress...`);
+                    }, 1000);
+                    break;
+                default:
+                    console.log(chalk.red(`${emoji.get('thinking_face')} not sure what the current status is for: ${answer.stackName}`));
+                    process.exit()
+                    break;
+            }
+
+        }
+    }), 5000);
 }
 
 function searchRegions(answers, input) {
@@ -532,53 +544,6 @@ function searchStacks(answers, input) {
             );
         }, _.random(30, 500));
     });
-}
-
-function getStackStatus(answer) {
-    const cloudformation = new AWS.CloudFormation();
-    const params = {
-        StackName: `${answer.stackName}`
-    };
-    setInterval(() => cloudformation.describeStacks(params, function (err, data) {
-        if (err) {
-            handlerError(err);
-        } else {
-            switch (data.Stacks[0].StackStatus) {
-                case 'CREATE_COMPLETE':
-                    console.log(chalk.green(`\n  ${check} creation complete for stack: ${answer.stackName} `));
-                    process.exit()
-                    break;
-                case 'DELETE_COMPLETE':
-                    console.log(data.Stacks[0])
-                    console.log(chalk.green(`\n  ${check} deletion complete for stack: ${answer.stackName} `));
-                    process.exit()
-                    break;
-                case 'CREATE_FAILED':
-                    console.log(chalk.red(`\n${seeNoEvil} stack creation failed for: ${answer.stackName}. Check AWS Console for more details`));
-                    process.exit()
-                    break;
-                case 'CREATE_IN_PROGRESS':
-                    setTimeout(() => {
-                        spinner.start();
-                        spinner.color = 'yellow';
-                        spinner.text = chalk.green(`${construction} Stack [${answer.stackName}] creation in progress...`);
-                    }, 1000);
-                    break;
-                case 'DELETE_IN_PROGRESS':
-                    setTimeout(() => {
-                        spinner.start();
-                        spinner.color = 'yellow';
-                        spinner.text = chalk.green(`${skull}  Stack [${answer.stackName}] deletion in progress...`);
-                    }, 1000);
-                    break;
-                default:
-                    console.log(chalk.red(`${thinking} not sure what the current status is for: ${answer.stackName}`));
-                    process.exit()
-                    break;
-            }
-
-        }
-    }), 5000);
 }
 
 function loadAvailabilityZones() {
