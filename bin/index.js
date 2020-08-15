@@ -14,7 +14,6 @@ const fuzzy = require('fuzzy');
 const ora = require('ora');
 const spinner = ora();
 
-const stackProtection = ['Termination protection', 'Shutdown protection']
 const azs = [];
 let availableStacks = [];
 const awsDetails = {}
@@ -47,9 +46,9 @@ const stackTypes = ['Jira', 'BitBucket', 'Confluence', 'Crowd']
 
 const asiParams = new Map([
     ['Jira', require('./assets/asiParams').jiraAsiParams],
-    ['Confluence', require('./assets/asiParams').confluenceAsiParams], //Conf diff by one param
+    ['Confluence', require('./assets/asiParams').confluenceAsiParams], 
     // ['BitBucket', jiraAsiParams], //BB diff
-    ['Crowd', require('./assets/asiParams').jiraAsiParams], //Crowd same as Jira
+    ['Crowd', require('./assets/asiParams').jiraAsiParams], 
 ])
 
 const productParams = new Map([
@@ -169,6 +168,7 @@ figlet.text('Aerosol', {
  * always defaulted to `ATL-`
  */
 function createStack() {
+    const stackProtection = ['Termination protection', 'Shutdown protection']
     loadAvailabilityZones()
     inquirer
         .prompt([
