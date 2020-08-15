@@ -1,4 +1,11 @@
-# aerosol
+# Aerosol
+
+<br />
+<p align="center">
+  <img  src="documentation/images/can.png" />
+</p>
+
+
 > A CLI tool for simplifying the management of Atlassian AWS QuickStarts 
 >
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](contributing.md)
@@ -17,19 +24,18 @@ Current version: **1.0.0**
  - [Usage](#usage)
 
 ## Install
-Clone this repo, and then:
+From the root directory of this cloned repo run:
 
 ```bash
 npm install
 ```
 
 ## Run
-From the root directory of the cloned repo
+To run
 
 ```bash
-node app/index.js
+node .
 ``` 
-
 
 ## Description
 Aerosol is a work in progress. As of now it will let you manage Jira, Confluence, BitBucket and Crowd AWS CloudFormation stacks. Using Aerosol you can; create, delete and view the current status of a stack. Aerosol also allows you to easily open an ssm session to the associated EC2 instances for a stack.
