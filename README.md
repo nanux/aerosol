@@ -3,7 +3,7 @@
 >
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](contributing.md)
 
-<br /><br />
+<br />
 <p align="center">
   <img  src="documentation/images/aersol.png" />
 </p>
