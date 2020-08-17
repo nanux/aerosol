@@ -112,8 +112,7 @@ figlet.text('Aerosol', {
         return;
     }
     console.log(chalk.yellow(`${data}`));
-    console.log(chalk.yellow(`\t\t\t\t\     Cloud in a can `))
-    console.log(chalk.yellow(`\t\t\t\t\     a DC-Deployments production `))
+    console.log(chalk.yellow(`\t\t\t\t\t CloudFormation in a can `))
     console.log(chalk.yellow(`\t\t\t\t\t\t\   version 1.0.0`))
     // console.log(chalk.yellow(`\t\t\t\t\t\t\       ${sparkles}${sparkles}${sparkles}`))
     console.log('\n')
