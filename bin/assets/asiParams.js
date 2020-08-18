@@ -76,5 +76,49 @@ const confluenceAsiParams = `[
   }
 ]`
 
+const bitbucketAsiParams = `[
+    {
+        "ParameterKey": "AvailabilityZones",
+        "ParameterValue": "{{availabilityZones}}"
+    },
+    {
+        "ParameterKey": "DBMasterUserPassword",
+        "ParameterValue": "{{dbPassword}}"
+    },
+    {
+        "ParameterKey": "BitbucketAdminPassword",
+        "ParameterValue": "{{dbPassword}}"
+    },
+    {
+        "ParameterKey": "AccessCIDR",
+        "ParameterValue": "10.0.0.0/0"
+    },
+    {
+        "ParameterKey": "DBMultiAZ",
+        "ParameterValue": "{{multiAzDB}}"
+    },
+    {
+        "ParameterKey": "DBInstanceClass",
+        "ParameterValue": "db.t2.large"
+    },
+    {
+        "ParameterKey": "DBIops",
+        "ParameterValue": "1000"
+    },
+    {
+        "ParameterKey": "DBPassword",
+        "ParameterValue": "{{dbPassword}}"
+    },
+    {
+        "ParameterKey":"QSS3BucketName",
+        "ParameterValue":"aws-quickstart"
+    },
+    {
+        "ParameterKey":"QSS3KeyPrefix",
+        "ParameterValue":"{{&productPrefix}}"
+    }
+]`
+
 exports.jiraAsiParams = jiraAsiParams;
 exports.confluenceAsiParams = confluenceAsiParams;
+exports.bitbucketAsiParams = bitbucketAsiParams;

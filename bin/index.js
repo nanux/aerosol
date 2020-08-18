@@ -47,7 +47,7 @@ const stackTypes = ['Jira', 'BitBucket', 'Confluence', 'Crowd']
 const asiParams = new Map([
     ['Jira', require('./assets/asiParams').jiraAsiParams],
     ['Confluence', require('./assets/asiParams').confluenceAsiParams], 
-    // ['BitBucket', jiraAsiParams], //BB diff
+    ['BitBucket', require('./assets/asiParams').bitbucketAsiParams],
     ['Crowd', require('./assets/asiParams').jiraAsiParams], 
 ])
 
