@@ -364,11 +364,11 @@ function ssmSession() {
             data.Reservations.forEach(reservation => {
                 targetInstances.push(reservation.Instances.filter(instance => instance.State.Name === 'running'))
             });
-            targetInstances.forEach(instance => {
+            targetInstances.forEach((instance, index) => {
                 if (instance.length > 0) {
                     let capturedInstance = {};
                     capturedInstance.instanceId = instance[0].InstanceId
-                    capturedInstance.name = instance[0].Tags.filter(tag => tag.Key === 'Name')[0].Value;
+                    capturedInstance.name = `Node ${index}: ${instance[0].Tags.filter(tag => tag.Key === 'Name')[0].Value}`;
                     availableInstances.push(capturedInstance)
                 }
             })
