@@ -77,28 +77,6 @@ const productPrefixes = new Map([
     ['Crowd', 'quickstart-atlassian-crowd/'],
 ])
 
-/* 
- * For now only interested in the following states
- */
-const listStackParams = {
-    StackStatusFilter: [
-        'CREATE_IN_PROGRESS',
-        'CREATE_FAILED',
-        'CREATE_COMPLETE',
-        'ROLLBACK_IN_PROGRESS',
-        'ROLLBACK_FAILED',
-        'ROLLBACK_COMPLETE',
-        'DELETE_IN_PROGRESS',
-        'DELETE_FAILED',
-        'UPDATE_COMPLETE',
-        'DELETE_COMPLETE',
-        'UPDATE_IN_PROGRESS',
-        'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
-        'UPDATE_COMPLETE',
-        'UPDATE_ROLLBACK_COMPLETE'
-    ]
-};
-
 figlet.text('Aerosol', {
     font: 'block',
     horizontalLayout: 'default',
@@ -312,6 +290,27 @@ function createStack() {
 
 function stackStatus() {
     availableStacks = [];
+    /* 
+     * For now only interested in the following states
+     */
+    const listStackParams = {
+        StackStatusFilter: [
+            'CREATE_IN_PROGRESS',
+            'CREATE_FAILED',
+            'CREATE_COMPLETE',
+            'ROLLBACK_IN_PROGRESS',
+            'ROLLBACK_FAILED',
+            'ROLLBACK_COMPLETE',
+            'DELETE_IN_PROGRESS',
+            'DELETE_FAILED',
+            'UPDATE_COMPLETE',
+            'DELETE_COMPLETE',
+            'UPDATE_IN_PROGRESS',
+            'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
+            'UPDATE_COMPLETE',
+            'UPDATE_ROLLBACK_COMPLETE'
+        ]
+    };
     const cloudformation = new AWS.CloudFormation();
     cloudformation.listStacks(listStackParams, function (err, data) {
         availableStacks = [];
@@ -389,7 +388,7 @@ function ssmSession() {
                     console.log(chalk.green(`${emoji.get('zap')} Using session details: ${sessionCommand}`))
                     console.log(chalk.green(`${emoji.get('rocket')} Launching SSM session now... `));
                     let spawn = require('child_process').spawn;
-                    spawn('aws', ['ssm', 'start-session', "--target", instanceId, "--region", awsDetails.region], {stdio: 'inherit'});
+                    spawn('aws', ['ssm', 'start-session', "--target", instanceId, "--region", awsDetails.region], {stdio: 'inherit', shell: true});
                 })
         } else {
             console.log(chalk.yellow(`${emoji.get('see_no_evil')} No running EC2 instances found for ${awsDetails.region}`))
@@ -398,8 +397,17 @@ function ssmSession() {
 }
 
 function deleteStack() {
+    const deleteStackParams = {
+        StackStatusFilter: [
+            'CREATE_COMPLETE',
+            'ROLLBACK_COMPLETE',
+            'UPDATE_COMPLETE',
+            'UPDATE_COMPLETE',
+            'UPDATE_ROLLBACK_COMPLETE'
+        ]
+    };
     const cloudformation = new AWS.CloudFormation();
-    cloudformation.listStacks(listStackParams, function (err, data) {
+    cloudformation.listStacks(deleteStackParams, function (err, data) {
         availableStacks = [];
         if (err) handlerError(err);
         else {
