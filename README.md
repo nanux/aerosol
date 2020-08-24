@@ -1,4 +1,4 @@
-# Aerosol
+## Aerosol
 > A CLI tool for simplifying the management of Atlassian AWS QuickStarts 
 >
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](contributing.md)
