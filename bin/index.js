@@ -387,8 +387,8 @@ function ssmSession() {
                     const sessionCommand = `aws ssm start-session --target ${instanceId} --region ${awsDetails.region}`
                     console.log(chalk.green(`${emoji.get('zap')} Using session details: ${sessionCommand}`))
                     console.log(chalk.green(`${emoji.get('rocket')} Launching SSM session now... `));
-                    let spawn = require('child_process').spawn;
-                    spawn('aws', ['ssm', 'start-session', "--target", instanceId, "--region", awsDetails.region], {stdio: 'inherit', shell: true});
+                    const spawnSync = require('child_process').spawnSync;
+                    spawnSync('aws', ['ssm', 'start-session', "--target", instanceId, "--region", awsDetails.region], {stdio: 'inherit', shell: true});
                 })
         } else {
             console.log(chalk.yellow(`${emoji.get('see_no_evil')} No running EC2 instances found for ${awsDetails.region}`))
